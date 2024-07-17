@@ -12,6 +12,10 @@ max_size="${1:?need max object size}"
 
 found="false"
 while read -r obj_id path; do
+  if [ -z "$path" ]; then
+    # Skip objects which are not files (commits, trees)
+    continue
+  fi
   size="$(git cat-file -s "$obj_id")"
   if [ "$size" -lt "$max_size" ]; then
     continue
@@ -25,7 +29,7 @@ while read -r obj_id path; do
 
   if [ "$GITHUB_ACTION" != "" ] && [ "$GITHUB_WORKFLOW" != "" ]; then
     # Output special github workflow metadata
-    printf "::error file=%s::Large git object (%d bytes)\n" "$path" "$size"
+    echo "::error file=$path::File $path is too large ($size bytes, $max_size is the limit)"
   fi
 done
 
